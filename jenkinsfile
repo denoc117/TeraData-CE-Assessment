@@ -1,0 +1,27 @@
+pipeline {
+    agent any
+    
+    stages {
+        stage('Build') {
+            steps {
+                // Build the Docker image
+                sh 'docker build -t my-web-app .'
+            }
+        }
+        stage('Test') {
+            steps {
+                // Run tests on the Docker image
+                sh 'docker run --rm my-web-app npm test'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                // Push the Docker image to a container registry
+                sh 'docker tag my-web-app my-registry/my-web-app:$BUILD_NUMBER'
+                sh 'docker push my-registry/my-web-app:$BUILD_NUMBER'
+                // Deploy the Docker image to a Kubernetes cluster
+                sh 'kubectl set image deployment/my-web-app my-web-app=my-registry/my-web-app:$BUILD_NUMBER'
+            }
+        }
+    }
+}
